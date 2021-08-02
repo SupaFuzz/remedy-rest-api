@@ -6,7 +6,7 @@ The goal of this project is to zero a zero-dependency library that can work eith
 
 ### This Library is a Work in Progress
 
-**to-do: ** rewrite this in typescript.
+*to-do:* rewrite this in typescript.
 
 **What Works** everything in the BMC ARS REST API as described in the documentation link above works, with the exception of these features:
 
@@ -26,7 +26,7 @@ The goal of this project is to zero a zero-dependency library that can work eith
 * [Template Literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals)
 * [Sane Class Syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes)
 
-**Contributing** Please feel free to! Email me at andrew@hicox.com if you need to get in touch, or through the usual github channels.
+**Contributing** Please feel free to! Email me at amy@hicox.com if you need to get in touch, or through the usual github channels.
 
 **test.js is your friend** seriously, if you're hip, that's probably a quicker way to get started than reading this :-)
 
