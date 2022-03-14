@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!--
+            remedy-rest-api.js browser test
+
+            Amy Hicox <amy@hicox.com> 3/11/22 ❤️
+        -->
+
+        <!-- make it look like an app -->
+        <meta charset="utf-8" />
+
+        <!-- library includes -->
+        <script src="./lib/remedy-rest-api.js"></script>
+
+        <!-- don't make Tim Gunn "question your taste level" mmmm'kay? -->
+        <style>
+            body {
+                background-color: rgb(57, 57, 57);
+            }
+        </style>
+
+        <!-- set up the app, then start it -->
+        <script type="text/javascript">
+            document.addEventListener("DOMContentLoaded", async function(evt){
+
+                // make an api object
+                let api = await new RemedyRestAPI({
+                    protocol:   window.location.protocol.replace(':', ''),
+                    server:     window.location.hostname,
+                    user:       'ahicox',
+                    password:   'bevis74',
+                    //password: 'intentionallyWrong',
+                    proxyPath:  '/REST',
+                    debug:      true
+                });
+
+                // authenticate
+                let btnLogin = document.createElement('button');
+                btnLogin.textContent = 'login';
+                btnLogin.addEventListener('click', function(evt){
+                    btnLogin.disabled = true;
+                    let authAbort = false;
+                    api.authenticate().catch(function(error){
+                        authAbort = true;
+                        alert(error);
+                    }).then(function(a){
+                        if (! authAbort){
+                            btnLogin.disabled = false;
+                            console.log(`api token: ${api.token}`);
+                        }
+                    });
+                });
+                document.body.appendChild(btnLogin);
+
+                // logout
+                let btnLogout = document.createElement('button');
+                btnLogout.textContent = 'logout';
+                btnLogout.addEventListener('click', function(evt){
+                    btnLogout.disabled = true;
+                    let authAbort = false;
+                    api.logout().catch(function(error){
+                        authAbort = true;
+                        alert(error);
+                    }).then(function(a){
+                        if (! authAbort){ btnLogout.disabled = false; }
+                    });
+                });
+                document.body.appendChild(btnLogout);
+
+
+            });
+        </script>
+    </head>
+    <body></body>
+</html>

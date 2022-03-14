@@ -1,11 +1,11 @@
 {
   "name": "remedy-rest-api",
   "version": "1.0.0",
-  "description": "a javascript library to make talking to BMC's Remedy ARS REST API groovy",
+  "description": "a javascript library to make talking to BMC's Remedy ARS REST API",
   "main": "remedy-rest-api.js",
   "scripts": {
     "test": "node test.js"
   },
-  "author": "andrew@hicox.com",
+  "author": "amy@hicox.com",
   "license": "ISC"
 }
