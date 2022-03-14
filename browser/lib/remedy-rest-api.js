@@ -20,7 +20,9 @@ constructor (args, defaults){
         // this class defaults
         {
             _className: 'ObjectCore',
-            _version:   1
+            _version:   1,
+            _usedGUIDs: [],
+            usedGUIDMaxCache:   1000
         },
 
         // pass through class defaults
@@ -85,6 +87,28 @@ hasAttribute(attributeName){
     return(this.hasOwnProperty(attributeName) && this.isNotNull(this[attributeName]));
 }
 
+
+
+
+/*
+    getGUID()
+    return a GUID. These are just random, but we do at least keep
+    track of the ones we've issued and won't issue the same one
+    twice within the same run instance
+*/
+getGUID(){
+    let guid;
+    do {
+        // thank you stackoverflow!
+        guid = 'ncxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            let r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+            return v.toString(16);
+        });
+    } while (this._usedGUIDs.indexOf(guid) >= 0);
+    this._usedGUIDs.push(guid);
+    if (this._usedGUIDs.length > this.usedGUIDMaxCache){ this._usedGUIDs.shift(); }
+    return(guid);
+}
 
 } // end ObjectCore class
 
@@ -278,7 +302,7 @@ apiFetch(p){
         }
 
         let abort = false;
-        fetch(args.endpoint, args).catch(function(error){
+        fetch(args.endpoint, fetchArgs).catch(function(error){
             abort = true;
             boot(new RemedyRestAPIException({
                 messageType: 'non-ars',
@@ -298,7 +322,7 @@ apiFetch(p){
                 };
                 response.json().catch(function(error){
                     // handle unparsable error
-                    paseAbort = true;
+                    parseAbort = true;
                 }).then(function(errorData){
                     if (! parseAbort){
                         errorArgs.arsErrorList = errorData;
@@ -406,7 +430,12 @@ logout(p){
 
         // bounce if not authenticated
         if (! that.isAuthenticated){
-            boot(`${that._className} v${that._version} | logout() | api handle is not authenticated`);
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | logout() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | logout()`,
+                thrownByFunctionArgs: args
+            }));
         }else{
 
             // check args
@@ -421,7 +450,12 @@ logout(p){
                 }
             });
             if (missingArgs.length > 0){
-                boot(`${that._className} v${that._version} | logout() | missing args: ${missingArgs.join(", ")}`);
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | logout() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | logout()`,
+                    thrownByFunctionArgs: args
+                }));
             }else{
 
                 // the rest endpoint
@@ -458,11 +492,533 @@ logout(p){
 
 
 
+
 /*
-    LOH 3/11/22 @ 2233
-    next up, port logout() to use apiFetch()
-    then port everything else
-    then onto getting node.js to work
+    getAttachment()
 */
+getAttachment(p){
+    let that = this;
+    let functionName = 'getAttachment';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol: that.protocol,
+        server:   that.server,
+        port:     that.port
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema', 'ticket', 'fieldName'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+
+                // the rest endpoint
+                let endpoint = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1/entry/${encodeURIComponent(args.schema)}/${args.ticket}/attach/${encodeURIComponent(args.fieldName)}`;
+                if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${endpoint}`); }
+
+                let abort = false;
+                that.apiFetch({
+                    endpoint:         endpoint,
+                    method:           'GET',
+                    expectHtmlStatus: 200,
+                    headers:{
+                        "Authorization":    `AR-JWT ${that.token}`
+                    }
+                }).catch(function(error){
+                    abort = true;
+                    error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                    error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                    boot(error);
+                }).then(function(response){ if (! abort){
+                    let parseAbort = false;
+                    response.blob().catch(function(error){
+                        parseAbort = true;
+                        boot(new RemedyRestAPIException({
+                            messageType: 'non-ars',
+                            message: `${that._className} v${that._version} | ${functionName}() | response parse error (as blob): ${error}`,
+                            thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                            thrownByFunctionArgs: args
+                        }));
+                    }).then(function(blob){ if (! parseAbort){
+                        toot(blob);
+                    }});
+                }});
+            }
+        }
+    }));
+}
+
+
+
+
+/*
+    query()
+*/
+query(p){
+    let that = this;
+    let functionName = 'query';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port,
+        fetchAttachments:   false,
+        getAssociations:    false,
+        expandAssociations: false
+
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema', 'fields', 'QBE'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+
+                // bounce for fields not being an object
+                if (! (args.hasOwnProperty('fields') && (args.fields instanceof Array))){
+                    boot(new RemedyRestAPIException({
+                        messageType: 'non-ars',
+                        message: `${that._className} v${that._version} | ${functionName}() | required argument 'fields' is not an array`,
+                        thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                        thrownByFunctionArgs: args
+                    }));
+                }else{
+                    // the rest endpoint
+                    let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1/entry/${encodeURIComponent(args.schema)}/?q=${encodeURIComponent(args.QBE)}&fields=values(${args.fields.join(",")})`;
+
+                    /*
+                        associations:
+                            * getAssociations <bool> || array
+                              if null or boolean false: do nothing
+                              if boolean true: get a list of all associations   url += `,assoc`
+                              if array: get associationNames listed             url += `,assoc(getAssociations.join(','))`
+
+                            * expandAssociations <bool>
+                              if true and getAssociations is an array, expand (get fieldValues for) the associations listed in getAssociations
+                              url += `&expand=assoc(getAssociations.join(','))`
+                    */
+                    if (args.hasOwnProperty('getAssociations')){
+                        if (args.getAssociations === true){
+                            url += `,assoc`;
+                        }else if (args.getAssociations instanceof Array){
+                            let as = [];
+                            as = args.getAssociations;
+                            if (args.hasOwnProperty('expandAssociations') && (args.expandAssociations === true)){
+                                url += `&expand=assoc(${as.join(',')})`;
+                            }else{
+                                url += `,assoc(${as.join(',')})`;
+                            }
+                        }
+                    }
+
+                    // paging stuffs
+                    ['offset', 'limit', 'sort'].forEach(function(a){
+                        if ((args.hasOwnProperty(a)) && (that.isNotNull(p[a]))){
+                            url += `&${a}=${encodeURIComponent(p[a])}`;
+                        }
+                    });
+                    if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+
+                    let abort = false;
+                    that.apiFetch({
+                        endpoint:           url,
+                        method:             'GET',
+                        expectHtmlStatus:   200,
+                        headers: {
+                            "Authorization":    `AR-JWT ${that.token}`,
+                            "Content-Type":     "application/x-www-form-urlencoded",
+                            "Cache-Control":    "no-cache"
+                        }
+                    }).catch(function(error){
+                        abort = true;
+                        error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                        error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                        boot(error);
+                    }).then(function(response){ if (! abort){
+                        let parseAbort = false;
+                        response.json().catch(function(error){
+                            parseAbort = true;
+                            boot(new RemedyRestAPIException({
+                                messageType: 'non-ars',
+                                message: `${that._className} v${that._version} | ${functionName}() | response json parse error: ${error}`,
+                                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                                thrownByFunctionArgs: args
+                            }));
+                        }).then(function(data){
+                            if (args.fetchAttachments == true){
+                                let pk = [];
+                                data.entries.forEach(function(row){
+                                    if (row.hasOwnProperty('_links') && row._links.hasOwnProperty('self') && row._links.self[0].hasOwnProperty('href')){
+                                        let parse = row._links.self[0].href.split('/');
+                                        let ticket = parse[(parse.length -1)];
+
+                                        // find attachment fields if there are any
+                                        Object.keys(row.values).forEach(function(field){
+                                            if (that.isNotNull(row.values[field])){
+                                                if ((row.values[field] instanceof Object) && row.values[field].hasOwnProperty('name') && row.values[field].hasOwnProperty('sizeBytes')){
+                                                    if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | fetching attachment from record: ${ticket} and field: ${field} with size: ${row.values[field].sizeBytes} and filename: ${row.values[field].name}`); }
+                                                    pk.push(new Promise(function(t, b){
+                                                        let a = false;
+                                                        that.getAttachment({
+                                                            schema:     args.schema,
+                                                            ticket:     ticket,
+                                                            fieldName:  field
+                                                        }).catch(function(error){
+                                                            a = true;
+                                                            error.message = `${that._className} v${that._version} | ${functionName}() -> getAttachment(${ticket}/${field}) | ${error}`;
+                                                            error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> getAttachment()`;
+                                                            b(error);
+                                                        }).then(function(dta){ if (! a){
+                                                            row.values[field].data = dta;
+                                                            t(true);
+                                                        }});
+                                                    }));
+                                                }
+                                            }
+                                        });
+                                        let mbort = false;
+                                        Promise.all(pk).catch(function(error){
+                                            mbort = true;
+                                            boot(error);
+                                        }).then(function(){
+                                            if (! mbort){ toot(data); }
+                                        });
+                                    }
+                                });
+                            }else{
+                                toot(data)
+                            }
+                        });
+                    }});
+                }
+            }
+        }
+    }));
+}
+
+
+
+
+/*
+    getTicket()
+*/
+getTicket(p){
+    let that = this;
+    let functionName = 'getTicket';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port,
+        fetchAttachments:   false,
+        getAssociations:    false,
+        expandAssociations: false
+
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema', 'fields', 'ticket'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+
+                // bounce for fields not being an object
+                if (! (args.hasOwnProperty('fields') && (args.fields instanceof Array))){
+                    boot(new RemedyRestAPIException({
+                        messageType: 'non-ars',
+                        message: `${that._className} v${that._version} | ${functionName}() | required argument 'fields' is not an array`,
+                        thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                        thrownByFunctionArgs: args
+                    }));
+                }else{
+                    let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1/entry/${encodeURIComponent(args.schema)}/${args.ticket}/?fields=values(${args.fields.join(",")})`;
+                    /*
+                        associations:
+                            * getAssociations <bool> || array
+                              if null or boolean false: do nothing
+                              if boolean true: get a list of all associations   url += `,assoc`
+                              if array: get associationNames listed             url += `,assoc(getAssociations.join(','))`
+
+                            * expandAssociations <bool>
+                              if true and getAssociations is an array, expand (get fieldValues for) the associations listed in getAssociations
+                              url += `&expand=assoc(getAssociations.join(','))`
+                    */
+                    if (args.hasOwnProperty('getAssociations')){
+                        if (args.getAssociations === true){
+                            url += `,assoc`;
+                        }else if (args.getAssociations instanceof Array){
+                            let as = [];
+                            as = args.getAssociations;
+                            if (args.hasOwnProperty('expandAssociations') && (args.expandAssociations === true)){
+                                url += `&expand=assoc(${as.join(',')})`;
+                            }else{
+                                url += `,assoc(${as.join(',')})`;
+                            }
+                        }
+                    }
+                    if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+                    let abort = false;
+                    that.apiFetch({
+                        endpoint:           url,
+                        method:             'GET',
+                        expectHtmlStatus:   200,
+                        headers: {
+                            "Authorization":    `AR-JWT ${that.token}`,
+                            "Content-Type":     "application/x-www-form-urlencoded",
+                            "Cache-Control":    "no-cache"
+                        }
+                    }).catch(function(error){
+                        abort = true;
+                        error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                        error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                        boot(error);
+                    }).then(function(response){ if (! abort){
+                        let parseAbort = false;
+                        response.json().catch(function(error){
+                            parseAbort = true;
+                            boot(new RemedyRestAPIException({
+                                messageType: 'non-ars',
+                                message: `${that._className} v${that._version} | ${functionName}() | response json parse error: ${error}`,
+                                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                                thrownByFunctionArgs: args
+                            }));
+                        }).then(function(data){
+                            if (args.fetchAttachments){
+                                let pk = [];
+                                Object.keys(data.values).forEach(function(field){
+                                    if (that.isNotNull(data.values[field])){
+                                        if ((data.values[field] instanceof Object) && data.values[field].hasOwnProperty('name') && data.values[field].hasOwnProperty('sizeBytes')){
+                                            if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | fetching attachment from field: ${field} with size: ${data.values[field].sizeBytes} and filename: ${data.values[field].name}`); }
+                                            pk.push(new Promise(function(t, b){
+                                                let a = false;
+                                                that.getAttachment({
+                                                    schema:     args.schema,
+                                                    ticket:     args.ticket,
+                                                    fieldName:  field
+                                                }).catch(function(error){
+                                                    a = true;
+                                                    error.message = `${that._className} v${that._version} | ${functionName}() -> getAttachment(${field}) | ${error}`;
+                                                    error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> getAttachment()`;
+                                                    b(error);
+                                                }).then(function(dta){
+                                                    data.values[field].data = dta;
+                                                    t(true);
+                                                });
+                                            }));
+                                        }
+                                    }
+                                });
+                                let mbort = false;
+                                Promise.all(pk).catch(function(error){
+                                    mbort = true;
+                                    boot(error);
+                                }).then(function(){ if (! mbort){
+                                    toot(data);
+                                }});
+                            }else{
+                                toot(data);
+                            }
+                        });
+                    }});
+                }
+            }
+        }
+    }));
+}
+
+
+
+
+/*
+    createTicket()
+*/
+createTicket(p){
+    let that = this;
+    let functionName = 'createTicket';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port
+
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema', 'fields'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+                // bounce for fields not being an object
+                if (! (args.hasOwnProperty('fields') && (args.fields instanceof Object))){
+                    boot(new RemedyRestAPIException({
+                        messageType: 'non-ars',
+                        message: `${that._className} v${that._version} | ${functionName}() | required argument 'fields' is not an object`,
+                        thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                        thrownByFunctionArgs: args
+                    }));
+                }else{
+                    let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1/entry/${encodeURIComponent(args.schema)}`;
+                    if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+                    let fetchArgs = {
+                        endpoint:           url,
+                        method:             'POST',
+                        expectHtmlStatus:   201,
+                        body:            { values: p.fields },
+                        encodeBody:      true,
+                        headers:            {
+                            "Authorization":    `AR-JWT ${that.token}`,
+                            "Content-Type":     "application/json",
+                            "Cache-Control":    "no-cache"
+                        }
+                    };
+                    /*
+                        attachments
+                    */
+                    if (args.hasOwnProperty('attachments') && (args.attachments instanceof Object)){
+                        let separator = this.getGUID().replaceAll('-', '');
+                        let fieldsJSON = JSON.stringify({ values: args.fields });
+                        fetchArgs.content =
+`
+--${separator}
+Content-Disposition: form-data; name="entry"
+Content-Type: application/json; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+${fieldsJSON}
+
+`;
+
+                        Object.keys(args.attachments).forEach(function(fileFieldName){
+                            let file = args.attachments[fileFieldName];
+                            let encoding = (file.hasOwnProperty('encoding'))?file.encoding:'binary';
+                            fetchArgs.content +=
+`
+--${separator}
+Content-Disposition: form-data; name="attach-${fileFieldName}"; filename="attach-${file.name}"
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: ${encoding}
+
+${file.content}
+--${separator}--
+`;
+                        });
+
+                        fetchArgs.encodeBody = false;
+                        fetchArgs.headers["Content-Type"] = `multipart/form-data;boundary=${separator}`;
+                    } // end attachment handling
+
+                    let abort = false;
+                    that.apiFetch(fetchArgs).catch(function(error){
+                        abort = true;
+                        error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                        error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                        boot(error);
+                    }).then(function(response){
+                        if (that.isNotNull(response.headers.get('location'))){
+                            let tmp = response.headers.get('location').split('/');
+                            toot({
+                                url: response.headers.get('location'),
+                                entryId: tmp[(tmp.length -1)]
+                            });
+                        }else{
+                            // can't get ticket number?
+                            boot(new RemedyRestAPIException({
+                                messageType: 'non-ars',
+                                message: `${that._className} v${that._version} | ${functionName}() | cannot parse server response for entryId`,
+                                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                                thrownByFunctionArgs: args
+                            }));
+                        }
+                    });
+                }
+            }
+        }
+    }));
+}
+
 
 } // end remedyRestAPI class
