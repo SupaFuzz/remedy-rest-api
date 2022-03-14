@@ -157,29 +157,42 @@
                 });
                 document.body.appendChild(btnGetTicket);
 
+
                 /*
                     createTicket()
                 */
-
+                let fData = {
+                    schema: 'ahicox_test_form',
+                    fields: {
+                        'Status': "published",
+                        'Short Description': "Tomato"
+                    }
+                };
                 let f = document.createElement('input');
                 f.type = 'file';
+                f.addEventListener('change', function(evt){
+                    let myReader = new FileReader();
+                    myReader.onload = function(e){
+                        fData.fields.test_attachment = 'test.jpg';
+                        fData.attachments = {
+                            test_attachment: {
+                                name: "test.jpg",
+                                encoding: 'BASE64',
+                                content: myReader.result.replace(/(.+)base64,/,'')
+                            }
+                        };
+                    }
+                    if (f.files[0]){
+                        myReader.readAsDataURL(f.files[0]);
+                    }
+                });
 
-                /*
-                    LOH 3/14/22 @ 1741
-                    next step: make a test for createTicket with attachment field
-                */
 
                 let btnCreateTicket = document.createElement('button');
                 btnCreateTicket.textContent = 'create ticket';
                 btnCreateTicket.addEventListener('click', function(evt){
                     let abort = false;
-                    api.createTicket({
-                        schema: 'ahicox_test_form',
-                        fields: {
-                            'Status':   "published",
-                            'Short Description':     "Tomato"
-                        }
-                    }).catch(function(error){
+                    api.createTicket(fData).catch(function(error){
                         abort = true;
                         console.log(error);
                     }).then(function(result){

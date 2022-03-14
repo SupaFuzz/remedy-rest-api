@@ -947,7 +947,7 @@ createTicket(p){
                         endpoint:           url,
                         method:             'POST',
                         expectHtmlStatus:   201,
-                        body:            { values: p.fields },
+                        body:            { values: args.fields },
                         encodeBody:      true,
                         headers:            {
                             "Authorization":    `AR-JWT ${that.token}`,
@@ -959,9 +959,9 @@ createTicket(p){
                         attachments
                     */
                     if (args.hasOwnProperty('attachments') && (args.attachments instanceof Object)){
-                        let separator = this.getGUID().replaceAll('-', '');
-                        let fieldsJSON = JSON.stringify({ values: args.fields });
-                        fetchArgs.content =
+                        let separator = that.getGUID().replaceAll('-', '');
+                        let fieldsJSON = JSON.stringify(fetchArgs.body);
+                        fetchArgs.body =
 `
 --${separator}
 Content-Disposition: form-data; name="entry"
@@ -975,7 +975,7 @@ ${fieldsJSON}
                         Object.keys(args.attachments).forEach(function(fileFieldName){
                             let file = args.attachments[fileFieldName];
                             let encoding = (file.hasOwnProperty('encoding'))?file.encoding:'binary';
-                            fetchArgs.content +=
+                            fetchArgs.body +=
 `
 --${separator}
 Content-Disposition: form-data; name="attach-${fileFieldName}"; filename="attach-${file.name}"
@@ -992,6 +992,9 @@ ${file.content}
                     } // end attachment handling
 
                     let abort = false;
+
+
+
                     that.apiFetch(fetchArgs).catch(function(error){
                         abort = true;
                         error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
