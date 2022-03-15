@@ -187,7 +187,6 @@
                     }
                 });
 
-
                 let btnCreateTicket = document.createElement('button');
                 btnCreateTicket.textContent = 'create ticket';
                 btnCreateTicket.addEventListener('click', function(evt){
@@ -198,11 +197,152 @@
                     }).then(function(result){
                         if (! abort){
                             console.log(result);
+                            fData.ticket = result.entryId;
                         }
                     })
                 });
                 document.body.appendChild(btnCreateTicket);
                 document.body.appendChild(f);
+
+
+                /*
+                    modifyTicket()
+                */
+                let btnModifyTicket = document.createElement('button');
+                btnModifyTicket.textContent = 'modify ticket';
+                btnModifyTicket.addEventListener('click', function(evt){
+                    fData.fields['Short Description'] = 'V8';
+                    let abort = false;
+                    api.modifyTicket(fData).catch(function(error){
+                        abort = true;
+                        console.log(error);
+                    }).then(function(result){
+                        if (! abort){
+                            console.log('modifyTicket() success');
+                        }
+                    });
+                });
+                document.body.appendChild(btnModifyTicket);
+
+                /*
+                    deleteTicket()
+                */
+                let btnDeleteTicket = document.createElement('button');
+                btnDeleteTicket.textContent = "delete ticket";
+                btnDeleteTicket.addEventListener('click', function(evt){
+                    let abort = false;
+                    api.deleteTicket({
+                        schema: 'ahicox_test_form',
+                        ticket: fData.ticket
+                    }).catch(function(error){
+                        abort = true;
+                        console.log(error);
+                    }).then(function(deleted){
+                        if (! abort){
+                            console.log(`deleted: ${deleted}`);
+                        }
+                    });
+                });
+                document.body.appendChild(btnDeleteTicket);
+
+                /*
+                    much complicated / do later
+                    test cases for mergeData()
+                */
+
+
+                /*
+                    getFormOptions()
+                */
+                let btnFormOptions = document.createElement('button');
+                btnFormOptions.textContent = "form options";
+                btnFormOptions.addEventListener('click', function(evt){
+                    let abort = false;
+                    api.getFormOptions({
+                        schema: 'ahicox_test_form'
+                    }).catch(function(error){
+                        abort = true;
+                        console.log(error);
+                    }).then(function(result){
+                        if (! abort){ console.log(result); }
+                    })
+                });
+                document.body.appendChild(btnFormOptions);
+
+
+                /*
+                    getMenu()
+                */
+                let btnGetMenu = document.createElement('button');
+                btnGetMenu.textContent = "get menu";
+                btnGetMenu.addEventListener('click', function(evt){
+                    let abort = false;
+                    api.getMenu({
+                        name: 'noice:demo:ingredient:Name'
+                    }).catch(function(error){
+                        abort = true;
+                        console.log(error);
+                    }).then(function(result){
+                        if (! abort){ console.log(result); }
+                    })
+                });
+                document.body.appendChild(btnGetMenu);
+
+                /*
+                    getMenuValues()
+                */
+                let btnGetMenuValues = document.createElement('button');
+                btnGetMenuValues.textContent = "get menu values";
+                btnGetMenuValues.addEventListener('click', function(evt){
+                    let abort = false;
+                    api.getMenuValues({
+                        name: 'noice:demo:ingredient:Name'
+                    }).catch(function(error){
+                        abort = true;
+                        console.log(error);
+                    }).then(function(result){
+                        if (! abort){ console.log(result); }
+                    })
+                });
+                document.body.appendChild(btnGetMenuValues);
+
+                /*
+                    getFormFields()
+                */
+                let btnGetFormFields = document.createElement('button');
+                btnGetFormFields.textContent = "get form fields";
+                btnGetFormFields.addEventListener('click', function(evt){
+                    let abort = false;
+                    api.getFormFields({
+                        schema: 'ahicox_test_form',
+                        fetchMenus: true
+                    }).catch(function(error){
+                        abort = true;
+                        console.log(error);
+                    }).then(function(result){
+                        if (! abort){ console.log(result); }
+                    })
+                });
+                document.body.appendChild(btnGetFormFields);
+
+                /*
+                    getRelatedFormsAndMenus()
+                */
+                let btnGetRelatedFormsAndMenus = document.createElement('button');
+                btnGetRelatedFormsAndMenus.textContent = "get related forms and fields";
+                btnGetRelatedFormsAndMenus.addEventListener('click', function(evt){
+                    let abort = false;
+                    api.getRelatedFormsAndMenus({
+                        schema: 'noice:demo:recipe',
+                    }).catch(function(error){
+                        abort = true;
+                        console.log(error);
+                    }).then(function(result){
+                        if (! abort){ console.log(result); }
+                    })
+                });
+                document.body.appendChild(btnGetRelatedFormsAndMenus);
+
             });
         </script>
     </head>

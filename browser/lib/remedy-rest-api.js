@@ -312,7 +312,11 @@ apiFetch(p){
             }));
         }).then(function(response){
             if (that.debug){ console.log(`${that._className} v${that._version} | apiFetch() | ${args.endpoint} | ${(response.ok)?'OK | ':''}${response.status}: ${response.statusText}`); }
-            if (response.status !== args.expectHtmlStatus){
+
+            if (
+                ((args.expectHtmlStatus instanceof Array) && (args.expectHtmlStatus.indexOf(response.status) < 0)) ||
+                ((! (args.expectHtmlStatus instanceof Array)) && (response.status !== args.expectHtmlStatus))
+            ){
                 // failure
                 let parseAbort = false;
                 let errorArgs = {
@@ -1001,20 +1005,22 @@ ${file.content}
                         error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
                         boot(error);
                     }).then(function(response){
-                        if (that.isNotNull(response.headers.get('location'))){
-                            let tmp = response.headers.get('location').split('/');
-                            toot({
-                                url: response.headers.get('location'),
-                                entryId: tmp[(tmp.length -1)]
-                            });
-                        }else{
-                            // can't get ticket number?
-                            boot(new RemedyRestAPIException({
-                                messageType: 'non-ars',
-                                message: `${that._className} v${that._version} | ${functionName}() | cannot parse server response for entryId`,
-                                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
-                                thrownByFunctionArgs: args
-                            }));
+                        if (! abort){
+                            if (that.isNotNull(response.headers.get('location'))){
+                                let tmp = response.headers.get('location').split('/');
+                                toot({
+                                    url: response.headers.get('location'),
+                                    entryId: tmp[(tmp.length -1)]
+                                });
+                            }else{
+                                // can't get ticket number?
+                                boot(new RemedyRestAPIException({
+                                    messageType: 'non-ars',
+                                    message: `${that._className} v${that._version} | ${functionName}() | cannot parse server response for entryId`,
+                                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                                    thrownByFunctionArgs: args
+                                }));
+                            }
                         }
                     });
                 }
@@ -1022,6 +1028,849 @@ ${file.content}
         }
     }));
 }
+
+
+
+
+/*
+    modifyTicket()
+*/
+modifyTicket(p){
+
+    let that = this;
+    let functionName = 'modifyTicket';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port
+
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema', 'fields', 'ticket'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+                // bounce for fields not being an object
+                if (! (args.hasOwnProperty('fields') && (args.fields instanceof Object))){
+                    boot(new RemedyRestAPIException({
+                        messageType: 'non-ars',
+                        message: `${that._className} v${that._version} | ${functionName}() | required argument 'fields' is not an object`,
+                        thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                        thrownByFunctionArgs: args
+                    }));
+                }else{
+
+                    // endpoint url
+                    let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1/entry/${encodeURIComponent(args.schema)}/${args.ticket}`;
+                    if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+                    let fetchArgs = {
+                        endpoint:           url,
+                        method:             'PUT',
+                        expectHtmlStatus:   204,
+                        body:            { values: args.fields },
+                        encodeBody:      true,
+                        headers:            {
+                            "Authorization":    `AR-JWT ${that.token}`,
+                            "Content-Type":     "application/json",
+                            "Cache-Control":    "no-cache"
+                        }
+                    };
+                    /*
+                        attachments
+                    */
+                    if (args.hasOwnProperty('attachments') && (args.attachments instanceof Object)){
+                        let separator = that.getGUID().replaceAll('-', '');
+                        let fieldsJSON = JSON.stringify(fetchArgs.body);
+                        fetchArgs.body =
+`
+--${separator}
+Content-Disposition: form-data; name="entry"
+Content-Type: application/json; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+${fieldsJSON}
+
+`;
+
+                        Object.keys(args.attachments).forEach(function(fileFieldName){
+                            let file = args.attachments[fileFieldName];
+                            let encoding = (file.hasOwnProperty('encoding'))?file.encoding:'binary';
+                            fetchArgs.body +=
+`
+--${separator}
+Content-Disposition: form-data; name="attach-${fileFieldName}"; filename="attach-${file.name}"
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: ${encoding}
+
+${file.content}
+--${separator}--
+`;
+                        });
+
+                        fetchArgs.encodeBody = false;
+                        fetchArgs.headers["Content-Type"] = `multipart/form-data;boundary=${separator}`;
+                    } // end attachment handling
+
+                    let abort = false;
+
+
+
+                    that.apiFetch(fetchArgs).catch(function(error){
+                        abort = true;
+                        error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                        error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                        boot(error);
+                    }).then(function(response){
+                        if (! abort){ toot(true); }
+                    });
+                }
+            }
+        }
+    }));
+}
+
+
+
+
+/*
+    deleteTicket()
+*/
+deleteTicket(p){
+
+    let that = this;
+    let functionName = 'deleteTicket';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port
+
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema', 'ticket'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+
+                let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1/entry/${encodeURIComponent(args.schema)}/${args.ticket}`;
+                if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+                let abort = false;
+                that.apiFetch({
+                    endpoint:         url,
+                    method:           'DELETE',
+                    expectHtmlStatus: 204,
+                    headers: {
+                        "Authorization":    `AR-JWT ${that.token}`,
+                        "Content-Type":     "application/json",
+                        "Cache-Control":    "no-cache"
+                    }
+                }).catch(function(error){
+                    abort = false;
+                    error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                    error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                    boot(error);
+                }).then(function(){
+                    if (! abort){ toot(args.ticket); }
+                });
+            }
+        }
+    }));
+}
+
+
+
+
+/*
+    mergeData()
+*/
+mergeData(){
+
+    let that = this;
+    let functionName = 'mergeData';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port
+
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema', 'fields'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+                // bounce for fields not being an object
+                if (! (args.hasOwnProperty('fields') && (args.fields instanceof Object))){
+                    boot(new RemedyRestAPIException({
+                        messageType: 'non-ars',
+                        message: `${that._className} v${that._version} | ${functionName}() | required argument 'fields' is not an object`,
+                        thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                        thrownByFunctionArgs: args
+                    }));
+                }else{
+                    // validate handleDuplicateEntryId (default "error")
+                    let mergeTypeDecoder = {
+                        error:          "DUP_ERROR",
+                        create:         "DUP_NEW_ID",
+                        overwrite:      "DUP_OVERWRITE",
+                        merge:          "DUP_MERGE",
+                        alwaysCreate:   "GEN_NEW_ID"
+                    };
+                    if (!((args.hasOwnProperty('handleDuplicateEntryId')) && that.isNotNull(args.handleDuplicateEntryId) && (Object.keys(mergeTypeDecoder).indexOf(args.handleDuplicateEntryId) >= 0))){
+                        p.handleDuplicateEntryId = 'error';
+                    }
+
+                    // validate multimatchOption (default "error")
+                    let multimatchOptionDecoder = {
+                        error:              0,
+                        useFirstMatching:   1
+                    };
+                    if (!((args.hasOwnProperty('multimatchOption')) && that.isNotNull(args.multimatchOption) && (Object.keys(multimatchOptionDecoder).indexOf(args.multimatchOption) >= 0))){
+                        args.multimatchOption = 'error';
+                    }
+
+                    // she.done.already.done.had.herses
+                    let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1/mergeEntry/${encodeURIComponent(args.schema)}`;
+                    if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+
+                    let body = {
+                        values:         args.fields,
+                        mergeOptions:   {
+                            mergeType:              mergeTypeDecoder[args.handleDuplicateEntryId],
+                            multimatchOption:       multimatchOptionDecoder[args.multimatchOption],
+                            ignorePatterns:         (args.hasOwnProperty('ignorePatterns') && args.ignorePatterns === true),
+                            ignoreRequired:         (args.hasOwnProperty('ignoreRequired') && args.ignoreRequired === true),
+                            workflowEnabled:        (! (args.hasOwnProperty('workflowEnabled') && args.workflowEnabled === true)),
+                            associationsEnabled:    (! (args.hasOwnProperty('associationsEnabled') && args.associationsEnabled === true))
+                        }
+                    };
+                    if (args.hasOwnProperty('QBE') && (that.isNotNull(args.QBE))){ body.qualification = args.QBE; }
+
+                    let abort = false;
+                    that.apiFetch({
+                        endpoint:           url,
+                        method:             'POST',
+                        expectHtmlStatus:   [201, 204],
+                        headers: {
+                            "Authorization":    `AR-JWT ${that.token}`,
+                            "Content-Type":     "application/json",
+                            "Cache-Control":    "no-cache"
+                        },
+                        body: body,
+                        encodeBody: true
+                    }).catch(function(error){
+                        abort = true;
+                        error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                        error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                        boot(error);
+                    }).then(function(result){
+                        if (! abort){
+                            if (that.isNotNull(response.headers.get('location'))){
+                                let tmp = response.headers.get('location').split('/');
+                                toot({
+                                    url: response.headers.get('location'),
+                                    entryId: tmp[(tmp.length -1)]
+                                });
+                            }else{
+                                // can't get ticket number?
+                                boot(new RemedyRestAPIException({
+                                    messageType: 'non-ars',
+                                    message: `${that._className} v${that._version} | ${functionName}() | cannot parse server response for entryId`,
+                                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                                    thrownByFunctionArgs: args
+                                }));
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }));
+} // end mergeData
+
+
+
+
+/*
+    getFormOptions()
+*/
+getFormOptions(p){
+
+    let that = this;
+    let functionName = 'getFormOptions';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port
+
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+                let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1.0/entry/${encodeURIComponent(args.schema)}`;
+                if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+                let abort = false;
+
+                that.apiFetch({
+                    endpoint:         url,
+                    method:           'OPTIONS',
+                    expectHtmlStatus: 200,
+                    headers:  {
+                        "Authorization":    `AR-JWT ${that.token}`,
+                        "Content-Type":     "application/json",
+                        "Cache-Control":    "no-cache"
+                    }
+                }).catch(function(error){
+                    abort = true;
+                    error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                    error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                    boot(error);
+                }).then(function(response){
+                    let parseAbort = false;
+                    response.json().catch(function(error){
+                        parseAbort = true;
+                        boot(new RemedyRestAPIException({
+                            messageType: 'non-ars',
+                            message: `${that._className} v${that._version} | ${functionName}() | response parse error: ${error}`,
+                            thrownByFunction: `${that._className} v${that._version} | ${functionName}() -> apiFetch() -> response.json()`,
+                            thrownByFunctionArgs: args
+                        }));
+                    }).then(function(responseData){
+                        if (! parseAbort){
+                            toot(responseData);
+                        }
+                    });
+                });
+            }
+        }
+    }));
+
+}
+
+
+
+
+/*
+    getMenu()
+*/
+getMenu(p){
+
+    let that = this;
+    let functionName = 'getMenu';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port
+
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'name'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+                let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1.0/menu/${encodeURIComponent(args.name)}`;
+                if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+                let abort = false;
+                that.apiFetch({
+                    endpoint:         url,
+                    method:           'GET',
+                    expectHtmlStatus: 200,
+                    headers: {
+                        "Authorization":    `AR-JWT ${that.token}`,
+                        "Content-Type":     "application/json",
+                        "Cache-Control":    "no-cache"
+                    }
+                }).catch(function(error){
+                    abort = true;
+                    error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                    error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                    boot(error);
+                }).then(function(response){
+                    let parseAbort = false;
+                    response.json().catch(function(error){
+                        parseAbort = true;
+                        boot(new RemedyRestAPIException({
+                            messageType: 'non-ars',
+                            message: `${that._className} v${that._version} | ${functionName}() | response parse error: ${error}`,
+                            thrownByFunction: `${that._className} v${that._version} | ${functionName}() -> apiFetch() -> response.json()`,
+                            thrownByFunctionArgs: args
+                        }));
+                    }).then(function(responseData){
+                        if (! parseAbort){
+                            toot(responseData);
+                        }
+                    });
+                });
+            }
+        }
+    }));
+}
+
+
+
+
+/*
+    getMenuValues()
+*/
+getMenuValues(p){
+    let that = this;
+    let functionName = 'getMenuValues';
+
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: p
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['name'].forEach(function(arg){
+                if (! (p.hasOwnProperty(arg) && that.isNotNull(p[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: p
+                }));
+            }else{
+                let url = `${that.protocol}://${that.server}:${that.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1.0/menu/expand`;
+                if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+                let abort = false;
+                that.apiFetch({
+                    endpoint:         url,
+                    method:           'POST',
+                    expectHtmlStatus: 200,
+                    body:             p,
+                    encodeBody:       true,
+                    headers: {
+                        "Authorization":    `AR-JWT ${that.token}`,
+                        "Content-Type":     "application/json",
+                        "Cache-Control":    "no-cache"
+                    }
+                }).catch(function(error){
+                    abort = true;
+                    error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                    error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                    boot(error);
+                }).then(function(response){
+                    if (! abort){
+                        let parseAbort = false;
+                        response.json().catch(function(error){
+                            parseAbort = true;
+                            boot(new RemedyRestAPIException({
+                                messageType: 'non-ars',
+                                message: `${that._className} v${that._version} | ${functionName}() | response parse error: ${error}`,
+                                thrownByFunction: `${that._className} v${that._version} | ${functionName}() -> apiFetch() -> response.json()`,
+                                thrownByFunctionArgs: args
+                            }));
+                        }).then(function(responseData){
+                            if (! parseAbort){
+                                toot(responseData);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }));
+}
+
+
+
+
+/*
+    getFormFields()
+*/
+getFormFields(p){
+    let that = this;
+    let functionName = 'getFormFields';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port,
+        fetchMenus:         false
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['protocol', 'server', 'port', 'schema'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+                let url = `${args.protocol}://${args.server}:${args.port}${(that.hasAttribute('proxyPath'))?that.proxyPath:''}/api/arsys/v1.0/fields/${encodeURIComponent(args.schema)}`;
+                if (that.debug){ console.log(`${that._className} v${that._version} | ${functionName}() | ${url}`); }
+                let abort = false;
+                that.apiFetch({
+                    endpoint:         url,
+                    method:           'GET',
+                    expectHtmlStatus: 200,
+                    headers: {
+                        "Authorization":    `AR-JWT ${that.token}`,
+                        "Content-Type":     "application/json",
+                        "Cache-Control":    "no-cache"
+                    }
+                }).catch(function(error){
+                    abort = true;
+                    error.message = `${that._className} v${that._version} | ${functionName}() | ${error}`;
+                    error.thrownByFunction = `${that._className} v${that._version} | ${functionName}() -> apiFetch()`;
+                    boot(error);
+                }).then(function(response){
+                    if (! abort){
+                        let parseAbort = false;
+                        response.json().catch(function(error){
+                            parseAbort = true;
+                            boot(new RemedyRestAPIException({
+                                messageType: 'non-ars',
+                                message: `${that._className} v${that._version} | ${functionName}() | response parse error: ${error}`,
+                                thrownByFunction: `${that._className} v${that._version} | ${functionName}() -> apiFetch() -> response.json()`,
+                                thrownByFunctionArgs: args
+                            }));
+                        }).then(function(responseData){
+                            if (! parseAbort){
+                                let formDefinition = {
+                                    idIndex: {},
+                                    nameIndex: {},
+                                    menus: {}
+                                };
+                                responseData.forEach(function(field){
+                                    formDefinition.idIndex[field.id] = field;
+                                    formDefinition.nameIndex[field.name] = field;
+                                });
+
+                                // handle fetch menus
+                                if (args.fetchMenus){
+                                    let menusToGet = {};
+                                    responseData.forEach(function(fieldDef){
+                                        if (
+                                            (fieldDef instanceof Object) &&
+                                            fieldDef.hasOwnProperty('limit') &&
+                                            (fieldDef.limit instanceof Object) &&
+                                            (fieldDef.limit.hasOwnProperty('char_menu')) &&
+                                            (that.isNotNull(fieldDef.limit.char_menu))
+                                        ){
+                                            menusToGet[fieldDef.limit.char_menu] = true;
+                                        }
+                                    });
+                                    let pk = [];
+                                    let menuErrors = [];
+                                    Object.keys(menusToGet).forEach(function(menuName){
+                                        pk.push(new Promise(function(toot, boot){
+                                            let abrt = false;
+                                            that.getMenu({name: menuName}).catch(function(error){
+                                                abrt = true;
+                                                menuErrors.push(error);
+                                                if (that.debug){ console.log(`${that._className} v${that._version}| ${functionName}()/fetchMenus(${menuName}) | error: ${error}`); }
+                                                boot(false);
+                                            }).then(function(menuDef){
+                                                if (! abrt){
+                                                    formDefinition.menus[menuName] = menuDef;
+                                                    toot(true);
+                                                }
+                                            })
+                                        }));
+                                    });
+                                    let mbort = false;
+                                    Promise.all(pk).catch(function(error){
+                                        mbort = true;
+                                        boot(new RemedyRestAPIException({
+                                            messageType: 'non-ars',
+                                            message: `${that._className} v${that._version} | ${functionName}() | failed to retrieve menus (multiple errors)`,
+                                            thrownByFunction: `${that._className} v${that._version} | ${functionName}() -> fetchMenus`,
+                                            thrownByFunctionArgs: args,
+                                            errors: menuErrors
+                                        }));
+                                    }).then(function(){
+                                        if (Object.keys(formDefinition.menus) == 0){ delete(formDefinition.menus); }
+                                        toot(formDefinition);
+                                    })
+                                }else{
+                                    toot(formDefinition);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }));
+}
+
+
+
+
+/*
+    getRelatedFormsAndMenus()
+*/
+getRelatedFormsAndMenus(p){
+    let that = this;
+    let functionName = 'getRelatedFormsAndMenus';
+
+    // merge function args to object server connect properties
+    let args = Object.assign({
+        protocol:           that.protocol,
+        server:             that.server,
+        port:               that.port,
+        fetchMenus:         false
+    }, (p instanceof Object)?p:{});
+
+    return(new Promise(function(toot, boot){
+
+        // bounce if not authenticated
+        if (! that.isAuthenticated){
+            boot(new RemedyRestAPIException({
+                messageType: 'non-ars',
+                message: `${that._className} v${that._version} | ${functionName}() | api handle is not authenticated`,
+                thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                thrownByFunctionArgs: args
+            }));
+        }else{
+
+            // bounce for missing args
+            let missingArgs = [];
+            ['schema'].forEach(function(arg){
+                if (! (args.hasOwnProperty(arg) && that.isNotNull(args[arg]))){ missingArgs.push(arg); }
+            });
+            if (missingArgs.length > 0){
+                boot(new RemedyRestAPIException({
+                    messageType: 'non-ars',
+                    message: `${that._className} v${that._version} | ${functionName}() | missing args: ${missingArgs.join(", ")}`,
+                    thrownByFunction: `${that._className} v${that._version} | ${functionName}()`,
+                    thrownByFunctionArgs: args
+                }));
+            }else{
+
+                // recursively get forms
+                let abort = false;
+                let out = { forms: {}, menus: {} };
+                that.getFormFields({schema: args.schema, fetchMenus: true}).catch(function(error){
+                    abort = true;
+                    error.message = `${functionName}(${p.schema}) | ${error.message}`;
+                    boot(error);
+                }).then(function(formDefinition){
+                    if (! abort){
+                        // insert the given form & menus into the return datastructure
+                        if (formDefinition.menus instanceof Object){
+                            Object.keys(formDefinition.menus).forEach(function(menuName){
+                                out.menus[menuName] = formDefinition.menus[menuName]
+                            });
+                            delete(formDefinition.menus);
+                        }
+                        out.forms[args.schema] = formDefinition;
+
+                        // get a distinct list of referenced forms
+                        let formsToGet = {};
+                        Object.keys(out.forms[args.schema].idIndex).forEach(function(fieldID){
+                            let fieldDef = out.forms[args.schema].idIndex[fieldID];
+                            if (
+                                (fieldDef instanceof Object) &&
+                                fieldDef.hasOwnProperty('datatype') &&
+                                (fieldDef.datatype == 'TABLE') &&
+                                (fieldDef.hasOwnProperty('limit')) &&
+                                (fieldDef.limit instanceof Object) &&
+                                (fieldDef.limit.hasOwnProperty('source_form')) &&
+                                that.isNotNull(fieldDef.limit.source_form) &&
+                                (! (out.forms.hasOwnProperty(fieldDef.limit.source_form)))
+                            ){
+                                // we found a form to get
+                                formsToGet[fieldDef.limit.source_form] = true;
+                            }
+                        });
+
+                        // await recursion
+                        let pk = [];
+                        let pkErrors = [];
+                        Object.keys(formsToGet).forEach(function(formName){
+                            pk.push(new Promise(function(t,b){
+                                let abrt = false;
+                                that.getRelatedFormsAndMenus({schema: formName}).catch(function(error){
+                                    abrt = true;
+                                    pkErrors.push(error);
+                                    if (that.debug){ console.log(`${that._className} | getRelatedFormsAndMenus(${formName}) | error: ${error}`); }
+                                    b(false);
+                                }).then(function(recurseOut){
+                                    if (! abrt){
+
+                                        // merge recursion result with output
+                                        ['menus', 'forms'].forEach(function(kind){
+                                            if (recurseOut[kind] instanceof Object){
+                                                Object.keys(recurseOut[kind]).forEach(function(thing){
+                                                    out[kind][thing] = recurseOut[kind][thing];
+                                                })
+                                            }
+                                        });
+                                        t(true);
+                                    }
+                                })
+                            }))
+                        });
+                        let pkAbort = false;
+                        Promise.all(pk).catch(function(error){
+                            pkAbort = true;
+                            boot(new RemedyRestAPIException ({
+                                messageType:            'non-ars',
+                                message:                `recursion failed (multiple, see 'errors')`,
+                                thrownByFunction:       'getRelatedFormsAndMenus',
+                                thrownByFunctionArgs:   (typeof(p) !== 'undefined')?p:{},
+                                errors:                 pkErrors
+                            }));
+                        }).then(function(){
+                            if (! pkAbort){
+                                toot(out);
+                            }
+                        });
+                    } // end getFormFields abort check
+                });
+            }
+        }
+    }));
+}
+
+
 
 
 } // end remedyRestAPI class
