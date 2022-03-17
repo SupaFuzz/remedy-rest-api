@@ -1,10 +1,21 @@
 /*
-    remedy-rest-api.js (browser version)
+    remedy-rest-api.js (node version)
     Amy Hicox <amy@hicox.com> 3/11/22 ❤️
 */
 
 
+
+
+/*
+    NODE STUFF
+*/
 'use strict';
+
+// trust shady SSL certs
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+
+
 
 /*
     ObjectCore class
@@ -1874,6 +1885,7 @@ getRelatedFormsAndMenus(p){
 
 
 } // end remedyRestAPI class
+
 
 // node hook
 if ((typeof module !== 'undefined') && (module.exports)){
