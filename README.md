@@ -204,7 +204,7 @@ retrieves attachment from the specified Attachment field on the specified form a
 #### args
 * **schema** `string` - the name of the Form on the server containing the record with the attachment field you want to retrieve
 
-* **ticket** `string` - the `'Entry ID' (field #1)` value identifying the record on the form identified by `schema` with the attachment field you wish to retrieve
+* **ticket** `string` - the `'Entry ID' (field 1)` value identifying the record on the form identified by `schema` with the attachment field you wish to retrieve
 
 * **fieldName** `string` - the **label** of the attachment field in the **default view** form identified by `schema` (this is unforunately how the ARS REST interface identifies fields -- what happens when two fields have the same label? ask BMC. `Field ID` *should* be supported to end around this ambiguity but isn't, again -- this is BMC's design, not mine :unamused:
 
@@ -265,12 +265,12 @@ let result = await Remedy.query({
 
 
 ### `async getTicket({args})`
-get field values (and optionally Attachments and Associations) for a single row on a single form identified by the `Entry ID (field #1)`. This is essentially `query()` but without sort, paging options and with a hardcoded QBE of `'1' = "${ticket}"`
+get field values (and optionally Attachments and Associations) for a single row on a single form identified by the `Entry ID (field 1)`. This is essentially `query()` but without sort, paging options and with a hardcoded QBE of `'1' = "${ticket}"`
 
 #### args
 * **schema** `string` - the name of the form containing the record identified by `ticket`
 
-* **ticket** `string` - the value of `field #1` (often named `Request ID`, `Entry ID`, or `Ticket Number`) uniquely identifing the row on the form identified by `schema` you wish to retrieve
+* **ticket** `string` - the value of `field 1` (often named `Request ID`, `Entry ID`, or `Ticket Number`) uniquely identifing the row on the form identified by `schema` you wish to retrieve
 
 * **fields** `array` - same as query, an array of strings matching field labels in the default view of the form identified by `schema`
 
@@ -300,7 +300,7 @@ let result = await Remedy.getTicket({
 
 
 ### `async createTicket({args})`
-create a new record on the specified form with the specified field values. the function returns a string indicating the `Entry ID (field #1)` value from the newly create record (that is, it gives you the ticket number back after creating it)
+create a new record on the specified form with the specified field values. the function returns a string indicating the `Entry ID (field 1)` value from the newly create record (that is, it gives you the ticket number back after creating it)
 
 #### args
 * **schema** `string` - the name of the form you wish to create a new record on
@@ -318,11 +318,11 @@ let fileBase64Content = reader.result.replace(/(.+)base64,/,'');
 NOTE ALSO: presently this library can only send one attachment per-REST request. In principle, there's no reason this shouldn't work for setting an arbitrary number of attachment fields in one go, however the ARS REST service throws an error when attempting to that. This is an open issue. A work around is to use `createTicket()` then to use `modifyTicket()` to add additional attachments to the record.
 
 #### output
-the function returns a datastructure containing the entryId (`field #1`) of the newly created record and the REST resource URL for accessing it
+the function returns a datastructure containing the entryId (`field 1`) of the newly created record and the REST resource URL for accessing it
 ```text.plain
 {
     url:     <resource url>,
-    entryId: <field #1 value>
+    entryId: <field 1 value>
 }
 ```
 
@@ -368,7 +368,7 @@ sets given values on specified fields of a specified record on a form.
 #### args
 * **schema** `string` - the name of the form you wish to create a new record on
 
-* **ticket** `string` - the value of `field #1` (often named `Request ID`, `Entry ID`, or `Ticket Number`) uniquely identifing the row on the form identified by `schema` you wish to modify
+* **ticket** `string` - the value of `field 1` (often named `Request ID`, `Entry ID`, or `Ticket Number`) uniquely identifing the row on the form identified by `schema` you wish to modify
 
 * **fields** `object` - an object of the form `{ fieldName: value, ... }`
 
@@ -435,7 +435,7 @@ As usual, the [BMC Documentation](https://docs.bmc.com/docs/ars1805/mergeentry-f
 Let's start with` "how does it know whether to make a new one or update an existing one?"`.
 As far as I can tell, it knows this by one of two methods:
 
-1. if you included the fieldName for the field with fieldId #1 (i.e. the "ticket number", "request id", "entry id"), in the **fields** argument, and the *value for that field* matches an existing record, then it will try to update that record (depending on **handleDuplicateEntryId** more on that in a minute).
+1. if you included the fieldName for the field with fieldId 1 (i.e. the "ticket number", "request id", "entry id"), in the **fields** argument, and the *value for that field* matches an existing record, then it will try to update that record (depending on **handleDuplicateEntryId** more on that in a minute).
 
 2. if you specified a **QBE** qualification that matched one or more rows (depending on **multimatchOption**). If that's the case, AND you've got **handleDuplicateEntryId** set to something other than error THEN it will ignore 'entryId' in **fields** (if you have one there) and it will update the single record identified by **QBE**. If the record identified by **QBE** has a different 'entryId', it's just gonna silently dump it from **fields**
 
@@ -474,7 +474,7 @@ the function returns a promise resolving to an object of this form:
 ```javascript
 {
     url:     <resource url>,
-    entryId: <field #1 value>
+    entryId: <field 1 value>
 }
 ```
 see notes on `createTicket()`
