@@ -1,0 +1,656 @@
+char-set: UTF-8
+#
+#  File exported Thu Mar 17 16:58:00 CDT 2022
+#
+begin schema
+   name           : RemedyRestAPI:test form
+   core-version   : 2
+   upgrade-version: 0
+   num-fields     : 13
+   timestamp      : 1647471446
+   owner          : ahicox
+   last-changed   : ahicox
+   default-vui    : Default Administrator View
+   num-vuis       : 2
+   export-version : 12
+   schema-type    : 1
+   next-field-id  : 536870930
+   permission     : 999002\1
+   permission     : 999001\1
+   object-prop    : 3\0\0\90015\2\4\90016\4\1\1\
+  assoc-to-follow : 
+   assoc-sel-type : 0
+     assoc-list   : 0\
+vui  {
+   id             : 536870912
+   name           : Default Administrator View__c
+   label          : Default Administrator View
+   timestamp      : 1647467317
+   vui-locale     : 
+   vui-type       : 1
+   owner          : ahicox
+   last-changed   : ahicox
+   display-prop   : 1\20\4\26\Default Administrator View\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+vui  {
+   id             : 536870915
+   name           : submitView__c
+   label          : submitView
+   timestamp      : 1647467317
+   vui-locale     : 
+   vui-type       : 1
+   owner          : ahicox
+   last-changed   : ahicox
+   display-prop   : 7\20\4\10\submitView\201\2\21597\202\2\13900\203\40\0\205\40\0\268\40\0\60019\4\3\New\
+   object-prop    : 2\90015\2\4\90016\4\1\1\
+}
+field {
+   id             : 1
+   name           : Entry ID
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647471446
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 15
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   permission     : 999002\2
+   permission     : 999001\1
+ display-instance : 536870912\15\3\41\2\2249\2000\17434\5500\4\6\1\7\40\2147483640\20\4\8\Entry ID\21\41\2\0\0\15185\1300\27\8\2\28\6\4\29\6\1\60\40\1\65\41\2\0\0\0\0\91\6\4&
+ display-instance : \143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\1\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 2
+   name           : Submitter
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 1
+   option         : 1
+   timestamp      : 1647467317
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 254
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   default        : $-1$
+   permission     : 0\1
+ display-instance : 536870912\17\3\41\2\2249\6000\20359\9500\4\6\1\7\40\2147483641\20\4\9\Submitter\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\30\65\41\2\0\0\&
+ display-instance : 0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 3
+   name           : Create Date
+   datatype       : 7
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647467317
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 0\1
+ display-instance : 536870912\17\3\41\2\2249\10000\20359\13500\4\6\1\7\40\2147483642\20\4\11\Create Date\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\23\65\41\2&
+ display-instance : \0\0\0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 4
+   name           : Assigned To
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 2
+   timestamp      : 1647467317
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 254
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   default        : $-1$
+   permission     : 0\1
+   permission     : 4\2
+ display-instance : 536870912\17\3\41\2\2249\14000\20359\17500\4\6\1\7\40\2147483643\20\4\11\Assigned To\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\30\65\41\2&
+ display-instance : \0\0\0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 5
+   name           : Last Modified By
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647467317
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 254
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   permission     : 0\1
+ display-instance : 536870912\17\3\41\2\2249\18000\20359\21500\4\6\1\7\40\2147483644\20\4\16\Last Modified By\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\33\65&
+ display-instance : \41\2\0\0\0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 6
+   name           : Modified Date
+   datatype       : 7
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647467317
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 0\1
+ display-instance : 536870912\17\3\41\2\2249\22000\20359\25500\4\6\1\7\40\2147483645\20\4\13\Modified Date\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\23\65\41&
+ display-instance : \2\0\0\0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 7
+   name           : Status
+   datatype       : 6
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 1
+   timestamp      : 1647467498
+   owner          : ahicox
+   last-changed   : ahicox
+   enum-value     : Bad
+   enum-value     : Good
+   default        : 1
+   permission     : 999002\1
+   permission     : 0\2
+   permission     : 999001\1
+ display-instance : 536870912\18\3\41\2\2249\26000\11360\29200\4\6\1\7\40\2147483646\20\4\6\Status\21\41\2\0\0\4499\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\0\64\6\1\65\41\2\&
+ display-instance : 0\0\0\0\91\6\4\143\40\4294967295\151\41\2\0\1400\9111\3200\170\40\0\230\4\14\2\0\Bad\1\Good\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 8
+   name           : Name
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 1
+   option         : 1
+   timestamp      : 1647467787
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 254
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   permission     : 0\1
+   permission     : 999002\2
+   permission     : 999001\1
+ display-instance : 536870912\26\3\41\2\2249\30000\20359\33500\4\6\1\7\40\2147483647\20\4\4\Name\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\50\65\41\2\0\0\0\0&
+ display-instance : \66\41\2\15748\1400\18110\3500\68\6\0\69\6\0\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\328\2\0\329\6\0\5274\4\0\\5302\6\0\5368&
+ display-instance : \0\5369\0\5370\0\
+ display-instance : 536870915\25\3\41\2\1124\1000\19234\4500\4\6\1\7\40\2147483644\20\4\4\Name\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\50\65\41\2\15748\140&
+ display-instance : 0\18110\3500\66\41\2\0\0\0\0\68\6\0\69\6\0\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\1\328\2\0\329\6\0\5302\6\0\5368\0\5369\0\53&
+ display-instance : 70\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 15
+   name           : Status History
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647467317
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 4\1
+   permission     : 3\1
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 1001
+   name           : btn_Save__c
+   datatype       : 32
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647467318
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 999001\1
+ display-instance : 536870915\15\2\8\1\3\41\2\12035\10000\19234\12100\4\6\1\5\6\2\7\40\2147483647\21\41\2\0\0\0\0\22\4\8\Required\110\4\4\Save\143\40\4294967295\170\40\0\310&
+ display-instance : \6\0\5231\4\0\\5232\4\0\\5233\4\0\\5234\4\4\left\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536870916
+   name           : btn_Cancel__c
+   datatype       : 32
+   fieldtype      : 0
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647467318
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 999001\1
+ display-instance : 536870915\14\2\8\1\3\41\2\1124\10000\8323\12100\4\6\1\5\6\2\7\40\2147483645\21\41\2\0\0\0\0\110\4\6\Cancel\143\40\4294967295\170\40\0\310\6\0\5231\4\0\\5&
+ display-instance : 232\4\0\\5233\4\0\\5234\4\4\left\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536870917
+   name           : Attachment Pool
+   datatype       : 37
+   fieldtype      : 0
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647467498
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 0\1
+ display-instance : 536870912\21\3\41\2\22609\2000\61529\12500\4\6\1\7\40\2147483652\14\40\1\20\4\15\Attachment Pool\143\40\4294967295\170\40\0\232\4\3\Add\233\4\6\Delete\23&
+ display-instance : 4\4\7\Display\235\4\4\Save\236\4\11\Attach Name\237\4\9\File Name\238\4\8\Max Size\271\4\8\Deselect\310\6\0\5233\4\0\\5234\4\4\left\5285\2\0\5286\6\1\533&
+ display-instance : 5\4\4\HIDE\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536870918
+   name           : test_attachment
+   datatype       : 11
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 2
+   timestamp      : 1647467498
+   owner          : ahicox
+   last-changed   : ahicox
+   maxsize        : 0
+   attachtype     : 1
+   fulltext-optns : 0
+   permission     : 0\2
+ display-instance : 536870912\7\3\41\2\0\0\10011\0\4\6\1\20\4\15\test_attachment\143\40\1\170\40\536870917\5233\4\0\\5234\4\4\left\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+end
+begin schema
+   name           : RemedyRestAPI:test form2
+   core-version   : 2
+   upgrade-version: 0
+   num-fields     : 16
+   timestamp      : 1647549669
+   owner          : ahicox
+   last-changed   : ahicox
+   default-vui    : Default Administrator View
+   num-vuis       : 2
+   export-version : 12
+   schema-type    : 1
+   next-field-id  : 536880915
+   permission     : 999002\1
+   permission     : 999001\1
+   object-prop    : 3\0\0\90015\2\4\90016\4\1\1\
+  assoc-to-follow : 
+   assoc-sel-type : 0
+     assoc-list   : 0\
+vui  {
+   id             : 536870912
+   name           : Default Administrator View__c
+   label          : Default Administrator View
+   timestamp      : 1647549289
+   vui-locale     : 
+   vui-type       : 1
+   owner          : ahicox
+   last-changed   : ahicox
+   display-prop   : 1\20\4\26\Default Administrator View\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+vui  {
+   id             : 536870915
+   name           : submitView__c
+   label          : submitView
+   timestamp      : 1647549289
+   vui-locale     : 
+   vui-type       : 1
+   owner          : ahicox
+   last-changed   : ahicox
+   display-prop   : 7\20\4\10\submitView\201\2\21597\202\2\13900\203\40\0\205\40\0\268\40\0\60019\4\3\New\
+   object-prop    : 2\90015\2\4\90016\4\1\1\
+}
+field {
+   id             : 1
+   name           : Entry ID
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647549555
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 15
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   permission     : 999002\2
+   permission     : 999001\1
+ display-instance : 536870912\15\3\41\2\2249\2000\17434\5500\4\6\1\7\40\2147483640\20\4\8\Entry ID\21\41\2\0\0\15185\1300\27\8\2\28\6\4\29\6\1\60\40\1\65\41\2\0\0\0\0\91\6\4&
+ display-instance : \143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\1\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 2
+   name           : Submitter
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 1
+   option         : 1
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 254
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   default        : $-1$
+   permission     : 0\1
+ display-instance : 536870912\17\3\41\2\2249\6000\20359\9500\4\6\1\7\40\2147483641\20\4\9\Submitter\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\30\65\41\2\0\0\&
+ display-instance : 0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 3
+   name           : Create Date
+   datatype       : 7
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 0\1
+ display-instance : 536870912\17\3\41\2\2249\10000\20359\13500\4\6\1\7\40\2147483642\20\4\11\Create Date\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\23\65\41\2&
+ display-instance : \0\0\0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 4
+   name           : Assigned To
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 2
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 254
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   default        : $-1$
+   permission     : 0\1
+   permission     : 4\2
+ display-instance : 536870912\17\3\41\2\2249\14000\20359\17500\4\6\1\7\40\2147483643\20\4\11\Assigned To\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\30\65\41\2&
+ display-instance : \0\0\0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 5
+   name           : Last Modified By
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 254
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   permission     : 0\1
+ display-instance : 536870912\17\3\41\2\2249\18000\20359\21500\4\6\1\7\40\2147483644\20\4\16\Last Modified By\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\33\65&
+ display-instance : \41\2\0\0\0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 6
+   name           : Modified Date
+   datatype       : 7
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 0\1
+ display-instance : 536870912\17\3\41\2\2249\22000\20359\25500\4\6\1\7\40\2147483645\20\4\13\Modified Date\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\23\65\41&
+ display-instance : \2\0\0\0\0\66\41\2\15748\1400\18110\3500\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 7
+   name           : Status
+   datatype       : 6
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 1
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   enum-value     : Bad
+   enum-value     : Good
+   default        : 1
+   permission     : 999002\1
+   permission     : 0\2
+   permission     : 999001\1
+ display-instance : 536870912\18\3\41\2\2249\26000\11360\29200\4\6\1\7\40\2147483646\20\4\6\Status\21\41\2\0\0\4499\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\0\64\6\1\65\41\2\&
+ display-instance : 0\0\0\0\91\6\4\143\40\4294967295\151\41\2\0\1400\9111\3200\170\40\0\230\4\14\2\0\Bad\1\Good\231\6\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 8
+   name           : Name
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 1
+   option         : 1
+   timestamp      : 1647549669
+   owner          : ahicox
+   last-changed   : ahicox
+   length-units   : 0
+   maxlength      : 254
+   clob-store-opt : 0
+   menu-style     : 2
+   qbe-match-op   : 1
+   fulltext-optns : 0
+   char-menu      : RemedyRestAPI:test menu
+   permission     : 0\1
+   permission     : 999002\2
+   permission     : 999001\1
+ display-instance : 536870912\26\3\41\2\2249\30000\23283\33500\4\6\1\7\40\2147483647\20\4\4\Name\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\50\65\41\2\15748\1&
+ display-instance : 400\18110\3500\66\41\2\18672\1400\21034\3500\68\6\0\69\6\0\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\0\328\2\0\329\6\0\5274\4\0\&
+ display-instance : \5302\6\0\5368\0\5369\0\5370\0\
+ display-instance : 536870915\25\3\41\2\1124\1000\19234\4500\4\6\1\7\40\2147483644\20\4\4\Name\21\41\2\0\0\18110\1300\27\8\2\28\6\4\29\6\1\60\40\1\61\40\50\65\41\2\15748\140&
+ display-instance : 0\18110\3500\66\41\2\0\0\0\0\68\6\0\69\6\0\91\6\4\143\40\4294967295\151\41\2\0\1400\15185\3500\170\40\0\231\6\1\328\2\0\329\6\0\5302\6\0\5368\0\5369\0\53&
+ display-instance : 70\0\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 15
+   name           : Status History
+   datatype       : 4
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 3
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 4\1
+   permission     : 3\1
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 1001
+   name           : btn_Save__c
+   datatype       : 32
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 999001\1
+ display-instance : 536870915\15\2\8\1\3\41\2\12035\10000\19234\12100\4\6\1\5\6\2\7\40\2147483647\21\41\2\0\0\0\0\22\4\8\Required\110\4\4\Save\143\40\4294967295\170\40\0\310&
+ display-instance : \6\0\5231\4\0\\5232\4\0\\5233\4\0\\5234\4\4\left\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536870916
+   name           : btn_Cancel__c
+   datatype       : 32
+   fieldtype      : 0
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647549289
+   owner          : ahicox
+   last-changed   : ahicox
+   permission     : 999001\1
+ display-instance : 536870915\14\2\8\1\3\41\2\1124\10000\8323\12100\4\6\1\5\6\2\7\40\2147483645\21\41\2\0\0\0\0\110\4\6\Cancel\143\40\4294967295\170\40\0\310\6\0\5231\4\0\\5&
+ display-instance : 232\4\0\\5233\4\0\\5234\4\4\left\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536870917
+   name           : tbl_testForm
+   datatype       : 33
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647549556
+   owner          : ahicox
+   last-changed   : ahicox
+tablefield-schema : RemedyRestAPI:test form
+tablefield-server : @
+tablefield-query  : 4\1\1\7\2\6\1\
+tablefield-numcols: 3
+tablefield-maxret : 1000
+   permission     : 0\1
+ display-instance : 536870912\50\3\41\2\22609\2000\67603\22000\4\6\1\5\6\2\7\40\2147483648\14\40\1\20\4\12\tbl_testForm\40\41\4\22609\2000\67603\2000\67603\22000\22609\22000&
+ display-instance : \143\40\4294967295\170\40\0\224\40\1\226\6\1\227\6\1\232\4\3\Add\233\4\6\Delete\234\4\7\Display\235\4\4\Save\236\4\11\Attach Name\237\4\9\File Name\238\4&
+ display-instance : \8\Max Size\271\4\8\Deselect\5001\6\0\5006\4\10\Next Chunk\5007\4\14\Previous Chunk\5008\4\25\Table has not been loaded\5009\4\18\{2} of {3} results\5013&
+ display-instance : \4\0\\5014\4\0\\5015\4\0\\5016\4\0\\5023\6\0\5060\4\0\\5067\6\0\5071\6\1\5072\6\1\5121\6\0\5212\6\0\5233\4\0\\5234\4\4\left\5308\6\1\5319\6\0\5324\6\0\53&
+ display-instance : 35\4\4\HIDE\5339\6\1\5346\6\2\5347\4\0\\5357\40\0\5360\6\0\5363\4\0\\5364\4\0\\5371\4\0\\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536870918
+   name           : test_attachment__c
+   datatype       : 11
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 2
+   timestamp      : 1647549555
+   owner          : ahicox
+   last-changed   : ahicox
+   maxsize        : 0
+   attachtype     : 1
+   fulltext-optns : 0
+   permission     : 0\2
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536880912
+   name           : tbl_testForm Modified Date column
+   datatype       : 34
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647549556
+   owner          : ahicox
+   last-changed   : ahicox
+colfield-parent   : 536870917
+colfield-datafield: 6
+colfield-collength: 254
+colfield-datasrc  : 0
+   permission     : 0\1
+ display-instance : 536870912\21\3\41\2\0\0\10011\0\4\6\1\20\4\13\Modified Date\60\40\5\220\40\10000\221\40\1\5021\6\0\5233\4\0\\5234\4\4\left\5294\6\2\5304\6\0\5309\6\0\531&
+ display-instance : 3\4\0\\5334\2\0\5340\6\0\5355\4\0\\5356\40\1\5358\4\0\\5365\4\0\\5367\6\1\5372\4\8\multiple\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536880913
+   name           : tbl_testForm Status column
+   datatype       : 34
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647549556
+   owner          : ahicox
+   last-changed   : ahicox
+colfield-parent   : 536870917
+colfield-datafield: 7
+colfield-collength: 254
+colfield-datasrc  : 0
+   permission     : 0\1
+ display-instance : 536870912\21\3\41\2\0\0\10011\0\4\6\1\20\4\6\Status\60\40\5\220\40\10000\221\40\2\5021\6\0\5233\4\0\\5234\4\4\left\5294\6\2\5304\6\0\5309\6\0\5313\4\0\\5&
+ display-instance : 334\2\0\5340\6\0\5355\4\0\\5356\40\1\5358\4\0\\5365\4\0\\5367\6\1\5372\4\8\multiple\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+field {
+   id             : 536880914
+   name           : tbl_testForm Name column
+   datatype       : 34
+   fieldtype      : 1
+   create-mode    : 2
+   option         : 4
+   timestamp      : 1647549556
+   owner          : ahicox
+   last-changed   : ahicox
+colfield-parent   : 536870917
+colfield-datafield: 8
+colfield-collength: 254
+colfield-datasrc  : 0
+   permission     : 0\1
+ display-instance : 536870912\21\3\41\2\0\0\10011\0\4\6\1\20\4\4\Name\60\40\5\220\40\10000\221\40\3\5021\6\0\5233\4\0\\5234\4\4\left\5294\6\2\5304\6\0\5309\6\0\5313\4\0\\533&
+ display-instance : 4\2\0\5340\6\0\5355\4\0\\5356\40\1\5358\4\0\\5365\4\0\\5367\6\1\5372\4\8\multiple\
+   object-prop    : 2\90016\4\1\1\90015\2\4\
+}
+end
+begin char menu
+   name           : RemedyRestAPI:test menu
+   timestamp      : 1647546069
+   owner          : ahicox
+   last-changed   : ahicox
+   refresh-code   : 1
+   char-menu      : 0\1\7\Lettuce\7\Lettuce
+   char-menu      : 0\1\6\Tomato\6\Tomato
+   char-menu      : 0\1\5\Onion\5\Onion
+   char-menu      : 0\1\7\Pickles\7\Pickles
+   char-menu      : 0\1\7\Ketchup\7\Ketchup
+   char-menu      : 0\1\7\Mustard\7\Mustard
+   char-menu      : 0\1\4\Mayo\4\Mayo
+   char-menu      : 0\1\6\Cheese\6\Cheese
+   object-prop    : 2\90015\2\4\90016\4\1\1\
+end

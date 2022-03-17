@@ -2,7 +2,7 @@
     test suite for remedy-rest-api.js
 */
 const fs = require('fs').promises;
-const Remedy = require('./remedy-rest-api.js');
+const Remedy = require('./lib/remedy-rest-api.js');
 process.stdin.setEncoding('utf8');
 let testList = [];
 let serverInfo = {};
