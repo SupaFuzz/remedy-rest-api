@@ -604,15 +604,15 @@ now say on your primary form you have a field: `536870919`, and on a menu you ha
 
 NOW ... say you want to retrieve the ingredient list for the demo:recipe row where `'1' = "000000000000003"`
 
-    this will work:
-    ```javascript
-    qualification_substitute_info: {
-        form_name: 'demo:recipe',
-        field_values: {
-          '536870919': "000000000000003"
-        }
-      }
-    ```
+this will work:
+```javascript
+qualification_substitute_info: {
+    form_name: 'demo:recipe',
+    field_values: {
+      '536870919': "000000000000003"
+    }
+  }
+```
 
 #### some caveats
 1. **you can't use the system field '1' [Entry ID] in the menu qualification**
