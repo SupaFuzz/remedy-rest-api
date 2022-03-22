@@ -157,7 +157,7 @@ Remedy.authenticate({
     proxyPath:  '/REST',
     user:       'someUser',
     password:   'd4fs3krT'
-}).catch(function(e){
+}).catch(function(error){
     abort = true;
     console.log(`authenticate failed: ${error}`);
 }).then(function(api){
