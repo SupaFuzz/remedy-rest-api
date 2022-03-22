@@ -173,7 +173,7 @@ let Remedy = await new RemedyRestAPI({
     proxyPath:  '/REST',
     user:       'someUser',
     password:   'd4fs3krT'
-}).authenticate().catch(function(e){
+}).authenticate().catch(function(error){
     console.log(`authenticate failed: ${error}`);
 });
 
