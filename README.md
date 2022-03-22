@@ -597,12 +597,12 @@ qualification_substitute_info: {
 ```
 `form_name` needs to be the form owning the field values that you wish to replace in the qualification. For instance if you've got a menu with a qualification like this from the recipe demo:
 
-    * **[primary ui form]**           demo:recipe
-    * **[supporting table form]**     demo:recipe:ingredient
+* **[primary ui form]**           demo:recipe
+* **[supporting table form]**     demo:recipe:ingredient
 
-    now say on your primary form you have a field: `536870919`, and on a menu you have a qualification like this: `'recipe Entry ID' = $536870919$` where 'recipe Entry ID' is the foreign key on your supporting table that links the rows to the parent
+now say on your primary form you have a field: `536870919`, and on a menu you have a qualification like this: `'recipe Entry ID' = $536870919$` where 'recipe Entry ID' is the foreign key on your supporting table that links the rows to the parent
 
-    NOW ... say you want to retrieve the ingredient list for the demo:recipe row where `'1' = "000000000000003"`
+NOW ... say you want to retrieve the ingredient list for the demo:recipe row where `'1' = "000000000000003"`
 
     this will work:
     ```javascript
