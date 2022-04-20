@@ -8,8 +8,13 @@ The previous version of this library was based on the [XHR API](https://develope
 
 ## Author / Version
 * **Amy Hicox** | `amy@hicox.com` | `amy.hicox@nasa.gov`
-* **Version 2.51** | 3/17/2022
+* **Version 2.52** | 4/19/2022
 
+
+## Version History
+* **1.0**  `6/18/18` - initial release using xhr api
+* **2.51** `3/17/22` - rewrite to use fetch api
+* **2.52** `4/19/22` - added support for webhooks
 
 
 
@@ -742,6 +747,233 @@ the function returns a promise resolving to an object of this form:
 }
 ```
 
+
+
+---
+
+
+
+### `async createWebHook({args})`
+
+creates a [web-hook callback](https://docs.bmc.com/docs/ars2008/adding-ar-system-webhook-to-receive-automatic-notifications-929631102.html) on the specified `schema` (aka "form") for the specified `operations` matching the optional `QBE`, with the specified `fields` to the specified REST `endpoint`. Returns the entry_id of the newly created web-hook record (see `AR System Webhook` form on the ARServer)
+
+*NOTE: this function will throw errors unless the authenticated user has Administrator privilege*
+
+#### **args**
+
+* **schema** `string, required` - the name of the form for which you want to create the webhook
+
+* **operations** `array, required` - specifies which operations the the form identified by `schema` should fire the new webhook. An array consisting of any or all of the following values:
+
+    * `create`
+    * `modify`
+    * `delete`
+
+
+* **QBE** `string(QBE)` - if specified, this QBE qualification is evaluated when the actions specified by `operations` are executed on the form identified by `schema`. If the qualification evaluates `true`, the webhook will fire, otherwise it will not. If not specified, the webhook always fires.
+
+* **fields** `array` - an array of field labels (see note on `fieldName` argument of `getAttachment()` above). This identifies the fields you wish to capture values for in the webhook. These field values will be included in the `entry_details` block of the webhook callback http request to the URL identified by `endpoint`
+
+* **endpoint** `string(URL), required` - post data to this URL when the webhook fires.
+
+* **headers** `string` - *does not work for now, open issue with BMC* If this was working, this would be static values to include in the request header when posting data to the URL identified by `endpoint`. As a workaround, you can set this with a `modifyTicket()` call against the webhook `AR System Webhook`, specifying the entry ID returned from this function, setting the value(s) you want on the `Header` field
+
+* **basic_auth_user** `string` - if the URL identified by `endpoint` is behind basic authentication, set the user value on this argument
+
+* **basic_auth_password** `string` -  if the URL identified by `endpoint` is behind basic authentication, set the password value on this argument
+
+* **description** `string, required` - the name of the webhook you are creating. This should be unique.
+
+
+#### output
+this is the same format as returned by `createTicket()`, the function returns a datastructure containing the entryId (`field 1`) of the newly created record and the REST resource URL for accessing it
+```text.plain
+{
+    url:     <resource url>,
+    entryId: <field 1 value>
+}
+```
+
+#### example
+```javascript
+let testAbort = false;
+api.createWebHook({
+    schema:     'ahicox_test_form',
+    operations: ['create', 'update'],
+    endpoint:   `http://apps.hicox.com:3000`,
+    description:'test 1',
+}).catch(function(error){
+    testAbort = true;
+    console.log(`createWebHook abort: ${error}`);
+}).then(function(res){
+    if (! testAbort){
+        console.log(`new webhook id: ${res.entryId}`);
+    }
+});
+```
+
+Do you want a quick and dirty endpoint to receive calls from the webhook you just made?
+install [node.js](https://nodejs.org) then:
+```shell
+[user@machine] mkdir quickTestServer; cd ./quickTestServer;
+[user@machine] npm install koa;
+[user@machine] npm install koa-bodyparser;
+```
+then create a file in that directory what you name it isn't super important but let's just call it `testServer.js`. Paste this code into that file:
+
+```javascript
+var Koa = require('koa');
+var Router = require('koa-router');
+var bodyParser = require('koa-bodyparser');
+
+var app = new Koa();
+var router = new Router();
+
+app.use(bodyParser({ enableTypes: ['json', 'text'] }));
+
+router.get('/', (ctx, next) => {
+    ctx.body = `Hello, I am the quick and dirty test server`;
+});
+router.post('/', (ctx, next) => {
+    // respond with something trivial
+    ctx.body = 'You Rang?!';
+
+    // log the request in its entirety
+    console.log('headers:');
+    console.log(ctx.request.headers);
+    console.log(`body:`)
+    console.log(ctx.request.body);
+
+});
+
+
+app
+  .use(router.routes())
+  .use(router.allowedMethods());
+
+app.listen(3000);
+```
+
+then run the server:
+```shell
+[user@machine] node ./testServer.js
+```
+
+now use `createWebHook()` as described above to create a webhook pointing to the machine running your test server, then create, update or delete a record on the form you created the webhook on, and you should see the request logged by your test server :punch: :thumbsup:
+
+
+
+---
+
+
+### `async getWebHook({args})`
+
+fetches a datastructure from the AR Server, describing the webhook identified by `webHookID`. Documentation on the returned datatype [is scant](https://docs.bmc.com/docs//ars2008/adding-ar-system-webhook-to-receive-automatic-notifications-929631102.html#AddingARSystemwebhooktoreceiveautomaticnotifications-get), however useful.
+
+#### args
+
+* **webHookID** `string, required` - this is the `Entry ID` of the `AR System Webhook` record corresponding to the webhook you want to get data about. This is also the value of `resoponse.entryId` returned by `createWebHook()` (see above)
+
+
+#### example
+```javascript
+let getAbort = false;
+api.getWebHook({
+    webHookID: 'WBH000000000004'
+}).catch(function(error){
+    getAbort = true;
+    console.log(`getWebHook abort: ${error}`);
+}).then(function(res){
+    if (! getAbort){
+        console.log(res);
+    }
+});
+```
+
+
+---
+
+
+
+### `async modifyWebHook({args})`
+
+modify the properties of an existing webhook identified by `webhookID`. Basically takes all of the same arguments as `createWebHook` with the addition of the `enabled` boolean flag
+
+#### args
+
+* **webHookID** `string, required` - this is the `Entry ID` of the `AR System Webhook` record corresponding to the webhook you want to modify. This is also the value of `resoponse.entryId` returned by `createWebHook()` (see above)
+
+* **enabled** `bool` - set it to a value of `false` to disable the webhook and `true` to enable it
+
+* **schema** `string` - the name of the form you want the webhook identified by `webHookID` to be attached to
+
+* **operations** `array` - if you specify an array containing one or more of the following values, the webhook identified by `webHookID` will execute on the specified operations
+
+    * `create`
+    * `modify`
+    * `delete`
+
+
+* **QBE** `string(QBE)` - if specified, this QBE qualification is evaluated when the actions specified by `operations` are executed on the form identified by `schema`. If the qualification evaluates `true`, the webhook will fire, otherwise it will not. If not specified, the webhook always fires.
+
+* **fields** `array` - an array of field labels (see note on `fieldName` argument of `getAttachment()` above). This identifies the fields you wish to capture values for in the webhook. These field values will be included in the `entry_details` block of the webhook callback http request to the URL identified by `endpoint`
+
+* **endpoint** `string(URL)` - post data to this URL when the webhook fires. NOTE: if you want to change `basic_auth_user` or `basic_auth_password` you must also specify `endpoint`
+
+* **headers** `string` - *does not work for now, open issue with BMC* See notes on `createWebHook()` above
+
+* **basic_auth_user** `string` - if the URL identified by `endpoint` is behind basic authentication, set the user value on this argument
+
+* **basic_auth_password** `string` -  if the URL identified by `endpoint` is behind basic authentication, set the password value on this argument
+
+* **description** `string, required` - change the name of the webhook identified by `webHookID`
+
+#### example
+```javascript
+let changeAbort = false;
+api.modifyWebHook({
+    webHookID: 'WBH000000000004',
+    description: 'yomamma'
+}).catch(function(error){
+    changeAbort = true;
+    console.log(`changeWebHook abort: ${error}`);
+}).then(function(response){
+    console.log('changeWebHook success');
+});
+```
+
+
+
+---
+
+
+### `async deleteWebHook({args}`
+
+deletes the webhook identified by `webHookID`
+
+#### args
+
+* **webHookID** `string, required` - this is the `Entry ID` of the `AR System Webhook` record corresponding to the webhook you want to delete. This is also the value of `resoponse.entryId` returned by `createWebHook()` (see above)
+
+
+#### example
+```javascript
+let delAbort = false;
+api.deleteWebHook({
+    webHookID: 'WBH000000000004'
+}).catch(function(error){
+    delAbort = true;
+    console.log(`deleteWebHook abort: ${error}`);
+}).then(function(res){
+    if (! delAbort){
+        console.log(res);
+    }
+});
+```
+
+
+
+---
 
 
 
