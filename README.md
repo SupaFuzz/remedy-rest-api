@@ -861,7 +861,7 @@ then run the server:
 
 now use `createWebHook()` as described above to create a webhook pointing to the machine running your test server, then create, update or delete a record on the form you created the webhook on, and you should see the request logged by your test server :punch: :thumbsup:
 
-
+NOTE: if you need a koa server that can handle `multipart/form-data`, which is to say *receive webhooks with attachments*, well ... that's a bit more complicated. [Start investigating here](https://github.com/koajs/multer)
 
 ---
 
