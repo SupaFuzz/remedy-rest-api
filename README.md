@@ -816,40 +816,25 @@ Do you want a quick and dirty endpoint to receive calls from the webhook you jus
 install [node.js](https://nodejs.org) then:
 ```shell
 [user@machine] mkdir quickTestServer; cd ./quickTestServer;
-[user@machine] npm install koa;
-[user@machine] npm install koa-bodyparser;
+[user@machine] npm install koa koa-router koa-body;
 ```
+
 then create a file in that directory what you name it isn't super important but let's just call it `testServer.js`. Paste this code into that file:
 
 ```javascript
-var Koa = require('koa');
-var Router = require('koa-router');
-var bodyParser = require('koa-bodyparser');
-
-var app = new Koa();
-var router = new Router();
-
-app.use(bodyParser({ enableTypes: ['json', 'text'] }));
-
-router.get('/', (ctx, next) => {
-    ctx.body = `Hello, I am the quick and dirty test server`;
-});
-router.post('/', (ctx, next) => {
-    // respond with something trivial
+const Koa = require('koa');
+const app = new Koa();
+const router = require('koa-router')();
+const koaBody = require('koa-body')({multipart:true});
+router.post('/', koaBody,
+  (ctx) => {
+    console.log("body: ", ctx.request.body);
+    console.log("files: ", ctx.request.files);
     ctx.body = 'You Rang?!';
+  }
+);
 
-    // log the request in its entirety
-    console.log('headers:');
-    console.log(ctx.request.headers);
-    console.log(`body:`)
-    console.log(ctx.request.body);
-
-});
-
-
-app
-  .use(router.routes())
-  .use(router.allowedMethods());
+app.use(router.routes());
 
 app.listen(3000);
 ```
@@ -860,8 +845,6 @@ then run the server:
 ```
 
 now use `createWebHook()` as described above to create a webhook pointing to the machine running your test server, then create, update or delete a record on the form you created the webhook on, and you should see the request logged by your test server :punch: :thumbsup:
-
-NOTE: if you need a koa server that can handle `multipart/form-data`, which is to say *receive webhooks with attachments*, well ... that's a bit more complicated. [Start investigating here](https://github.com/koajs/multer)
 
 ---
 
