@@ -766,7 +766,7 @@ creates a [web-hook callback](https://docs.bmc.com/docs/ars2008/adding-ar-system
 * **operations** `array, required` - specifies which operations the the form identified by `schema` should fire the new webhook. An array consisting of any or all of the following values:
 
     * `create`
-    * `modify`
+    * `update`
     * `delete`
 
 
