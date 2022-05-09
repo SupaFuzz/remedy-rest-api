@@ -8,14 +8,14 @@ The previous version of this library was based on the [XHR API](https://develope
 
 ## Author / Version
 * **Amy Hicox** | `amy@hicox.com` | `amy.hicox@nasa.gov`
-* **Version 2.52** | 4/19/2022
+* **Version 2.53** | 5/9/2022
 
 
 ## Version History
 * **1.0**  `6/18/18` - initial release using xhr api
 * **2.51** `3/17/22` - rewrite to use fetch api
 * **2.52** `4/19/22` - added support for webhooks
-
+* **2.53** `5/9/22`  - added support for 'headers' arg on `createWebHook()` and `modifyWebHook()`
 
 
 ## Synopsis
@@ -776,7 +776,17 @@ creates a [web-hook callback](https://docs.bmc.com/docs/ars2008/adding-ar-system
 
 * **endpoint** `string(URL), required` - post data to this URL when the webhook fires.
 
-* **headers** `string` - *does not work for now, open issue with BMC* If this was working, this would be static values to include in the request header when posting data to the URL identified by `endpoint`. As a workaround, you can set this with a `modifyTicket()` call against the webhook `AR System Webhook`, specifying the entry ID returned from this function, setting the value(s) you want on the `Header` field
+* **headers** `object` - Each root-level key/value pair of this object will be echoed as statuc values into the request header when posting data to the URL identified by `endpoint`. For instance:
+
+    ```json
+    headers: { "Bearer": "someVeryComplicatedAPIToken", "Prefer-SomeOption": "true" }
+    ```
+
+    would generate a header of the form
+
+    ```text
+    Bearer:someVeryComplicatedAPIToken;Prefer-SomeOption:true
+    ```
 
 * **basic_auth_user** `string` - if the URL identified by `endpoint` is behind basic authentication, set the user value on this argument
 
@@ -893,7 +903,7 @@ modify the properties of an existing webhook identified by `webhookID`. Basicall
 * **operations** `array` - if you specify an array containing one or more of the following values, the webhook identified by `webHookID` will execute on the specified operations
 
     * `create`
-    * `modify`
+    * `update`
     * `delete`
 
 
@@ -903,7 +913,7 @@ modify the properties of an existing webhook identified by `webhookID`. Basicall
 
 * **endpoint** `string(URL)` - post data to this URL when the webhook fires. NOTE: if you want to change `basic_auth_user` or `basic_auth_password` you must also specify `endpoint`
 
-* **headers** `string` - *does not work for now, open issue with BMC* See notes on `createWebHook()` above
+* **headers** `object` - See notes on `createWebHook()` above. This works exactly the same *except* that if you want to update the headers, you *also* must send `endopoint` again (and if you have basic auth user & pass, send those again as well) -- this is because of the json input structure on the BMC webservice call -- which is to say, `endpoint`, `headers`, `basic_auth_user` & `basic_auth_password` are all specified inside the same input struct, so if you want to modify any one of these you have to send a value for all of them on the modify call.
 
 * **basic_auth_user** `string` - if the URL identified by `endpoint` is behind basic authentication, set the user value on this argument
 

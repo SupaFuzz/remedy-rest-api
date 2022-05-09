@@ -1,6 +1,6 @@
 {
   "name": "remedy-rest-api",
-  "version": "2.52",
+  "version": "2.53",
   "description": "a zero-dependency javascript library for talking to BMC's Remedy ARS REST API in Node or Browsers",
   "main": "./lib/remedy-rest-api.js",
   "scripts": {
