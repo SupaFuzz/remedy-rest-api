@@ -778,7 +778,7 @@ creates a [web-hook callback](https://docs.bmc.com/docs/ars2008/adding-ar-system
 
 * **headers** `object` - Each root-level key/value pair of this object will be echoed as statuc values into the request header when posting data to the URL identified by `endpoint`. For instance:
 
-    ```json
+    ```javascript
     headers: { "Bearer": "someVeryComplicatedAPIToken", "Prefer-SomeOption": "true" }
     ```
 
